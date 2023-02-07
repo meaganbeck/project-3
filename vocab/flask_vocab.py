@@ -6,7 +6,8 @@ from a scrambled string)
 
 import flask
 import logging
-
+#new
+from flask import request, render_template
 # Our modules
 from src.letterbag import LetterBag
 from src.vocab import Vocab
@@ -42,6 +43,11 @@ except ValueError:
 ###
 
 @app.route("/")
+#def home():
+ #   flask.g.mylist = list(range(1,11))
+ #   return flask.render_template('vocab.html')
+
+
 @app.route("/index")
 def index():
     """The main page of the application"""
@@ -58,16 +64,8 @@ def index():
     return flask.render_template('vocab.html')
 
 
-@app.route("/keep_going")
-def keep_going():
-    """
-    After initial use of index, we keep the same scrambled
-    word and try to get more matches
-    """
-    flask.g.vocab = WORDS.as_list()
-    return flask.render_template('vocab.html')
 
-
+#will still need to call
 @app.route("/success")
 def success():
     return flask.render_template('success.html')
@@ -81,6 +79,8 @@ def success():
 
 @app.route("/_check", methods=["POST"])
 def check():
+    ##it's taking pOST REQUESTS CHANGE TO GET REQUESTS AND CHange methods???
+
     """
     User has submitted the form with a word ('attempt')
     that should be formed from the jumble and on the
@@ -99,29 +99,38 @@ def check():
     # Is it good?
     in_jumble = LetterBag(jumble).contains(text)
     matched = WORDS.has(text)
-
+    rslt = {};
+    #NO FLASK FLASH
+    #JUST CREATE A DICTIONARY TO JSONIFY AND THROW BACK
     # Respond appropriately
     if matched and in_jumble and not (text in matches):
         # Cool, they found a new word
-        matches.append(text)
-        flask.session["matches"] = matches
+        #new word
+        rslt = {"matched": True}
+        #rslt["matched"].append(True)
     elif text in matches:
-        flask.flash("You already found {}".format(text))
+        #already found
+        rslt = {"matched": "You already found {}".format(text)}
+        #rslt["found"].append(True)
     elif not matched:
-        flask.flash("{} isn't in the list of words".format(text))
+        #not matched
+        rslt = {"matched": "{} isn't in the list of words".format(text)}
+        #rslt["matched"].append(False)
     elif not in_jumble:
-        flask.flash(
-            '"{}" can\'t be made from the letters {}'.format(text, jumble))
+        #not in given letters
+        #rslt["letters"].append(False)
+        rslt = {"matched": "{} can\'t be made from the letters {}".format(text,jumble)}
     else:
         app.logger.debug("This case shouldn't happen!")
         assert False  # Raises AssertionError
-
-    # Choose page:  Solved enough, or keep going?
+    return flask.jsonify(result = rslt)
+    
+     #Choose page:  Solved enough, or keep going?
     if len(matches) >= flask.session["target_count"]:
-       return flask.redirect(flask.url_for("success"))
-    else:
-       return flask.redirect(flask.url_for("keep_going"))
-
+  #      rslt = {"success": flask.url_for("success")}
+         rslt = {"success": len(matches) >= flask.session["target_count"]}
+   # return flask.jsonify(result = rslt)
+        
 
 ###############
 # AJAX request handlers
@@ -158,6 +167,7 @@ def format_filt(something):
 @app.errorhandler(404)
 def error_404(e):
     app.logger.warning("++ 404 error: {}".format(e))
+    rslt = {'404.html', }
     return flask.render_template('404.html'), 404
 
 
