@@ -85,25 +85,29 @@
          	$("#entry").submit(function(event){
 	 	    event.preventDefault();
 		});
+
 		$("#attempt").keyup(function(event) { //at keystroke
 		   var txt = $("#attempt").val();
 		   var keycode = event.which;
 		   var letter = String.fromCharCode(keycode);
 
-		   if (! "ABCDEFGHIJKLMNOPQRSTUVWXYZ".includes(letter)) {return}	
+		  if (! "ABCDEFGHIJKLMNOPQRSTUVWXYZ".includes(letter)) {return}	
 		$.getJSON("/_check", {text: txt}, function(data) {
-			console.log("rsval: " + rsval)
-			//use rsval and 
-			rsval = data.result.matched;
+		
+			var rsval = data.result.match;
+			console.log("rsval: " + rsval);
+			var message = data.result.message;
+			var success = data.result.success;
 			if (rsval){ //it matches 
-				$("#results").append(txt);
+				$("#result").append(txt + " ");
+				$("#attempt").val("");
+				$("#message").html(message);
 			}
-			else: //not a match
-				$("#results").append(txt.length + " ");
-			
-		        rsval2 = data.results.success;
-			if (rsval2){
-				return redirect($.getJSON("/success"));
+			else{ 
+				$("#message").html(message);
+			}
+			if (success){
+				window.location.replace("/success");
 			}
 
 		}
@@ -111,9 +115,9 @@
 		});
 	 </script>
 	 <h2> You found </h2>
-	 <p id = "results">
+	 <p id = "result">
 	 </p>
-	 <p class = "message">
+	 <p id = "message">
 	 </p>
 
       </div>
